@@ -6,9 +6,14 @@ namespace Fiap.Web.Alunos.Data
     public class DatabaseContext : DbContext
     {
         public virtual DbSet<RepresentanteModel> Representantes { get; set; }
-
-        // Novo: DbSet que transforma o ClienteModel na tabela Clientes
         public virtual DbSet<ClienteModel> Clientes { get; set; }
+
+        // novos DbSets das entidades da seção 6.4
+        public virtual DbSet<ProdutoModel> Produtos { get; set; }
+        public virtual DbSet<LojaModel> Lojas { get; set; }
+        public virtual DbSet<PedidoModel> Pedidos { get; set; }
+        public virtual DbSet<FornecedorModel> Fornecedores { get; set; }
+        public virtual DbSet<PedidoProdutoModel> PedidoProdutos { get; set; }
 
         public DatabaseContext(DbContextOptions options) : base(options)
         {
@@ -28,21 +33,72 @@ namespace Fiap.Web.Alunos.Data
                 entity.HasIndex(e => e.Cpf).IsUnique();
             });
 
-            // Novo: regras da tabela Clientes
             modelBuilder.Entity<ClienteModel>(entity =>
             {
-                entity.ToTable("Clientes");                                     // nome da tabela
-                entity.HasKey(e => e.ClienteId);                                // chave primária
-                entity.Property(e => e.Nome).IsRequired();                      // nome obrigatório
-                entity.Property(e => e.Email).IsRequired();                     // email obrigatório
-                entity.Property(e => e.DataNascimento).HasColumnType("date");   // só a data, sem hora
-                entity.Property(e => e.Observacao).HasMaxLength(500);           // até 500 caracteres
-
-                // Relacionamento: cada cliente tem um representante, e um representante tem vários clientes
+                entity.ToTable("Clientes");
+                entity.HasKey(e => e.ClienteId);
+                entity.Property(e => e.Nome).IsRequired();
+                entity.Property(e => e.Email).IsRequired();
+                entity.Property(e => e.DataNascimento).HasColumnType("date");
+                entity.Property(e => e.Observacao).HasMaxLength(500);
                 entity.HasOne(e => e.Representante)
                       .WithMany()
-                      .HasForeignKey(e => e.RepresentanteId)                    // chave estrangeira
-                      .IsRequired();                                            // cliente sempre precisa de representante
+                      .HasForeignKey(e => e.RepresentanteId)
+                      .IsRequired();
+            });
+
+            // novo: Produtos, ligado ao Fornecedor
+            modelBuilder.Entity<ProdutoModel>(entity =>
+            {
+                entity.ToTable("Produtos");
+                entity.HasKey(p => p.ProdutoId);
+                entity.Property(p => p.Nome).IsRequired();
+                entity.Property(p => p.Preco).HasColumnType("NUMBER(18,2)");  // preço com 2 casas decimais
+                entity.HasOne(p => p.Fornecedor)
+                      .WithMany(f => f.Produtos)
+                      .HasForeignKey(p => p.FornecedorId);
+            });
+
+            // novo: Lojas, com vários pedidos
+            modelBuilder.Entity<LojaModel>(entity =>
+            {
+                entity.ToTable("Lojas");
+                entity.HasKey(l => l.LojaId);
+                entity.Property(l => l.Nome).IsRequired();
+                entity.HasMany(l => l.Pedidos)
+                      .WithOne(p => p.Loja)
+                      .HasForeignKey(p => p.LojaId);
+            });
+
+            // novo: Pedidos, ligado ao Cliente
+            modelBuilder.Entity<PedidoModel>(entity =>
+            {
+                entity.ToTable("Pedidos");
+                entity.HasKey(p => p.PedidoId);
+                entity.Property(p => p.DataPedido).HasColumnType("DATE");
+                entity.HasOne(p => p.Cliente)
+                      .WithMany()
+                      .HasForeignKey(p => p.ClienteId);
+            });
+
+            // novo: Fornecedores
+            modelBuilder.Entity<FornecedorModel>(entity =>
+            {
+                entity.ToTable("Fornecedores");
+                entity.HasKey(f => f.FornecedorId);
+                entity.Property(f => f.Nome).IsRequired();
+            });
+
+            // novo: tabela do meio do muitos-para-muitos
+            modelBuilder.Entity<PedidoProdutoModel>(entity =>
+            {
+                entity.HasKey(pp => new { pp.PedidoId, pp.ProdutoId });   // chave composta pelos dois IDs
+                entity.HasOne(pp => pp.Pedido)
+                      .WithMany(p => p.PedidoProdutos)
+                      .HasForeignKey(pp => pp.PedidoId);
+                entity.HasOne(pp => pp.Produto)
+                      .WithMany(p => p.PedidoProdutos)
+                      .HasForeignKey(pp => pp.ProdutoId);
             });
 
             base.OnModelCreating(modelBuilder);

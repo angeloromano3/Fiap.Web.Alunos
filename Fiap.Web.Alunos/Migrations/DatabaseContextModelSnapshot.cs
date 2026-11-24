@@ -58,6 +58,112 @@ namespace Fiap.Web.Alunos.Migrations
                     b.ToTable("Clientes", (string)null);
                 });
 
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.FornecedorModel", b =>
+                {
+                    b.Property<int>("FornecedorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FornecedorId"));
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.HasKey("FornecedorId");
+
+                    b.ToTable("Fornecedores", (string)null);
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.LojaModel", b =>
+                {
+                    b.Property<int>("LojaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LojaId"));
+
+                    b.Property<string>("Endereco")
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.HasKey("LojaId");
+
+                    b.ToTable("Lojas", (string)null);
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.PedidoModel", b =>
+                {
+                    b.Property<int>("PedidoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PedidoId"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<DateTime>("DataPedido")
+                        .HasColumnType("DATE");
+
+                    b.Property<int>("LojaId")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.HasKey("PedidoId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("LojaId");
+
+                    b.ToTable("Pedidos", (string)null);
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.PedidoProdutoModel", b =>
+                {
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.HasKey("PedidoId", "ProdutoId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("PedidoProdutos");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.ProdutoModel", b =>
+                {
+                    b.Property<int>("ProdutoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProdutoId"));
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.Property<int>("FornecedorId")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.Property<decimal>("Preco")
+                        .HasColumnType("NUMBER(18,2)");
+
+                    b.HasKey("ProdutoId");
+
+                    b.HasIndex("FornecedorId");
+
+                    b.ToTable("Produtos", (string)null);
+                });
+
             modelBuilder.Entity("Fiap.Web.Alunos.Models.RepresentanteModel", b =>
                 {
                     b.Property<int>("RepresentanteId")
@@ -91,6 +197,75 @@ namespace Fiap.Web.Alunos.Migrations
                         .IsRequired();
 
                     b.Navigation("Representante");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.PedidoModel", b =>
+                {
+                    b.HasOne("Fiap.Web.Alunos.Models.ClienteModel", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fiap.Web.Alunos.Models.LojaModel", "Loja")
+                        .WithMany("Pedidos")
+                        .HasForeignKey("LojaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Loja");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.PedidoProdutoModel", b =>
+                {
+                    b.HasOne("Fiap.Web.Alunos.Models.PedidoModel", "Pedido")
+                        .WithMany("PedidoProdutos")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fiap.Web.Alunos.Models.ProdutoModel", "Produto")
+                        .WithMany("PedidoProdutos")
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.ProdutoModel", b =>
+                {
+                    b.HasOne("Fiap.Web.Alunos.Models.FornecedorModel", "Fornecedor")
+                        .WithMany("Produtos")
+                        .HasForeignKey("FornecedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fornecedor");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.FornecedorModel", b =>
+                {
+                    b.Navigation("Produtos");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.LojaModel", b =>
+                {
+                    b.Navigation("Pedidos");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.PedidoModel", b =>
+                {
+                    b.Navigation("PedidoProdutos");
+                });
+
+            modelBuilder.Entity("Fiap.Web.Alunos.Models.ProdutoModel", b =>
+                {
+                    b.Navigation("PedidoProdutos");
                 });
 #pragma warning restore 612, 618
         }
