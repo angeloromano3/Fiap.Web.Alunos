@@ -10,15 +10,15 @@ namespace Fiap.Web.Alunos.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly DatabaseContext _databaseContext;
 
-        public HomeController(ILogger<HomeController> logger)
+        // o construtor agora recebe o DatabaseContext como parâmetro
+        public HomeController(ILogger<HomeController> logger, DatabaseContext databaseContext)
         {
             _logger = logger;
-            _databaseContext = DatabaseContext;
+            _databaseContext = databaseContext; // guarda o objeto recebido, não a classe
         }
 
         public IActionResult Index()
         {
-
             return View();
         }
 
